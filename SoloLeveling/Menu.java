@@ -21,7 +21,7 @@ public class Menu {
         System.out.println("            |_____||___||_||___|  |_____||___| \\_/ |___||_||_||_|_||_  |");
         System.out.println("                                                                   |___|");
     }
-hahahaha
+
 
     public static void clearScreen() {
         try {
