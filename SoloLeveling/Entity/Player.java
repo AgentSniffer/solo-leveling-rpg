@@ -1,6 +1,6 @@
 package SoloLeveling.Entity;
 
-import SoloLeveling.Utils.DateUtil;
+import SoloLeveling.Utils.DateTime;
 
 public class Player {
     private String name;
@@ -76,7 +76,7 @@ public class Player {
     }
 
     public void updateLastPlayed() {
-        lastPlayedAt = DateUtil.getCurrentDate() + " " + DateUtil.getCurrentTime();
+        lastPlayedAt = DateTime.getCurrentDate() + " " + DateTime.getCurrentTime();
     }
 
     // // get methods for debugging 

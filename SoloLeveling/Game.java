@@ -1,15 +1,11 @@
 package SoloLeveling;
 
+import SoloLeveling.Utils.Display;
+
 public class Game {
     public static void main(String[] args) {
-        Menu.clearScreen();
+        Display.clear();
         Menu.showWelcomeScreen();
-
-        //System.out.println(System.getProperty("os.name")); //just for testing
-
-        boolean isRunning = true;
-        while (isRunning) {
-            Menu.showMainMenu();
-        }
+        Menu.showMainMenu();
     }
 }
