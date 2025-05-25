@@ -1,6 +1,7 @@
 package SoloLeveling;
 
 import java.util.Scanner;
+import SoloLeveling.Classes.Player;
 
 public class Menu {
     public static void showWelcomeScreen() {
@@ -11,6 +12,7 @@ public class Menu {
         
         Scanner scanner = new Scanner(System.in);
         scanner.nextLine();
+        scanner.close();
         clearScreen();
     }
 
@@ -60,6 +62,7 @@ public class Menu {
         Scanner scanner = new Scanner(System.in);
         int choice = scanner.nextInt();
         scanner.nextLine();
+        scanner.close();
         
         switch (choice) {
             case 1:
@@ -75,7 +78,6 @@ public class Menu {
                 clearScreen();
                 break;
             case 4:
-                System.out.println("\nExiting...");
                 clearScreen();
                 System.out.println("\nArise.");
                 System.exit(0);
