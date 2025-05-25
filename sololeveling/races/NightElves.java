@@ -1,9 +1,9 @@
-package SoloLeveling.Races;
+package sololeveling.races;
 
-import SoloLeveling.Entity.Race;
+import sololeveling.entities.Race;
 
-public class NightElf extends Race {
-    public NightElf() {
+public class NightElves extends Race {
+    public NightElves() {
         name = "Night Elf";
         baseStrength = 9;
         baseIntelligence = 11;

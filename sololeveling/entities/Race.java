@@ -1,4 +1,4 @@
-package SoloLeveling.Entity;
+package sololeveling.entities;
 
 public class Race {
     String name;

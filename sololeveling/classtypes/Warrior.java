@@ -1,6 +1,6 @@
-package SoloLeveling.ClassesTypes;
+package sololeveling.classtypes;
 
-import SoloLeveling.Entity.ClassType;
+import sololeveling.entities.ClassType;
 
 public class Warrior extends ClassType {
     public Warrior() {

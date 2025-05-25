@@ -1,6 +1,6 @@
-package SoloLeveling;
+package sololeveling;
 
-import SoloLeveling.Utils.Display;
+import sololeveling.utils.Display;
 
 public class Game {
     public static void main(String[] args) {

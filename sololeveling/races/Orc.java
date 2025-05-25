@@ -1,6 +1,6 @@
-package SoloLeveling.Races;
+package sololeveling.races;
 
-import SoloLeveling.Entity.Race;
+import sololeveling.entities.Race;
 
 public class Orc extends Race {
     public Orc() {

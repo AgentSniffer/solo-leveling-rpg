@@ -1,34 +1,34 @@
-package SoloLeveling.Entity;
+package sololeveling.entities;
 
-import SoloLeveling.Utils.DateTime;
+import sololeveling.utils.DateTime;
 
 public class Player {
-    private String name;
-    private String race;
-    private String gender;
-    private String classType;
+    String name;
+    String race;
+    String gender;
+    String classType;
 
-    private int level;
-    private int experience;
-    private int gold;
+    int level;
+    int experience;
+    int gold;
+    
+    int health;
+    int maxHealth;
+    int mana;
+    int maxMana;
 
-    private int health;
-    private int maxHealth;
-    private int mana;
-    private int maxMana;
+    int strength;
+    int intelligence;
+    int dexterity;
+    int constitution;
 
-    private int strength;
-    private int intelligence;
-    private int dexterity;
-    private int constitution;
+    int physicalDefense;
+    int magicDefense;
 
-    private int physicalDefense;
-    private int magicDefense;
-
-    private String createdAt;
-    private String lastPlayedAt;
+    String createdAt;
+    String lastPlayedAt;
         
-    Player(String s1, String s2, String s3, String s4, int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8, int i9, int i10, int i11, int i12, int i13, String s5, String s6){
+    public Player(String s1, String s2, String s3, String s4, int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8, int i9, int i10, int i11, int i12, int i13, String s5, String s6){
         name = s1;
         race = s2;
         gender = s3;

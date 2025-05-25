@@ -1,6 +1,6 @@
-package SoloLeveling;
+package sololeveling;
 
-import SoloLeveling.Utils.Display;
+import sololeveling.utils.Display;
 import java.util.Scanner;
 
 public class Menu {
