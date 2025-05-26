@@ -1,11 +1,11 @@
 # Trash and temporary folders
-trash/
-.trash/
-Trash/
-.Trash/
-~Trash/
-.trashinfo/
-*.trashinfo
+# trash/
+# .trash/
+# Trash/
+# .Trash/
+# ~Trash/
+# .trashinfo/
+# *.trashinfo
 
 # Java compiled class files
 *.class
