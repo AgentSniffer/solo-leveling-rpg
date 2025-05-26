@@ -6,35 +6,30 @@ import java.util.Scanner;
 public class Menu {
 
     public static void showWelcomeScreen() {
-        System.out.println("                    High Score: 999999\n");
         Display.logo();
+        System.out.println("                    High Score: 999999\n");
         System.out.println("\n\n                 Welcome to Solo Leveling\n");
         System.out.println("                 Press Enter to continue...\n");
-        
-        Scanner scanner = new Scanner(System.in);
-        scanner.nextLine();
-        Display.clear();
     }
 
     public static void showMainMenu() {
         Scanner scanner = new Scanner(System.in);
         boolean isRunning = true;
+        int choice = -1;
 
         while (isRunning) {
-            for (int i = 0; i < 10; i++) {
-                System.out.println();
-            }
-            
+            Display.clear();
             Display.logo();
             Display.menu();
             
             // validates input
-            int choice = -1;
             try {
                 choice = scanner.nextInt();
-            } catch (Exception e) {
+            } catch (ArithmeticException e) {
                 System.out.println("\nInvalid choice. Please try again.");
-                showMainMenu();
+            } catch (Exception e) {
+                // SAFETY NET
+                System.out.println("\nInvalid choice. Please try again.");
             }
             
             switch (choice) {
@@ -57,7 +52,6 @@ public class Menu {
                     break;
                 default:
                     System.out.println("\nInvalid choice. Please try again.");
-                    showMainMenu();
                     break;
             }
         }

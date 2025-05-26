@@ -1,4 +1,4 @@
-package SoloLeveling.Utils;
+package sololeveling.utils;
 
 public class Display {
    
