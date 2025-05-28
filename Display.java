@@ -1,6 +1,14 @@
 
 public class Display {
 
+    private static final String MENU_OPTIONS
+            = "1. Start New Game\n"
+            + "2. Load Game\n"
+            + "3. Options\n"
+            + "4. Login\n"
+            + "5. Register\n"
+            + "6. Exit";
+
     public static void logo() {
         System.out.println("             _____       _         __                    _  _           ");
         System.out.println("            |   __| ___ | | ___   |  |    ___  _ _  ___ | ||_| ___  ___ ");
@@ -30,7 +38,8 @@ public class Display {
         System.out.println("                 Press Enter to continue...\n");
     }
 
-    public static void printBox(String text) {
+    public static void printBox(String text, int marginLeft, int marginRight, int marginTop, int marginBottom) {
+
         String[] textLines = text.split("\n");
 
         // Find the longest line
@@ -40,12 +49,6 @@ public class Display {
                 maxLineLength = line.length();
             }
         }
-
-        // Add margin for aesthetic purposes
-        int marginTop = 0;
-        int marginBottom = 0;
-        int marginLeft = 1;
-        int marginRight = 1;
 
         int totalWidth = maxLineLength + marginLeft + marginRight; // 2 means 2 spaces both side
 
@@ -99,5 +102,22 @@ public class Display {
 
         // Print bottom border bottom
         System.out.println("╚" + horizontalLine + "╝");
+    }
+
+    // Default Overloaded Method with default padding
+    public static void printBox(String text) {
+        printBox(text, 1, 1, 0, 0);
+    }
+
+    public static void showMenu() {
+
+        printBox(MENU_OPTIONS);
+    }
+
+    public static void delay(int seconds) {
+        try {
+            Thread.sleep(seconds * 1000);  // conversion milliseconds to seconds
+        } catch (InterruptedException e) {
+        }
     }
 }
