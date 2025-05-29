@@ -1,7 +1,7 @@
 import java.util.HashMap;
 import java.util.Scanner;
 
-public class SoloLevelingGame {
+public class Register {
     private static HashMap<String, String> accounts = new HashMap<>();
 
     public static void main(String[] args) {
