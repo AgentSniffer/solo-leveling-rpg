@@ -1,38 +1,98 @@
 
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
+// Simple UI class - makes the game talk to you
 public class UI {
 
-    private static final Scanner scanner = new Scanner(System.in);
+    static Scanner uiInput = new Scanner(System.in);
 
     public static void waitForEnter() {
-
-        scanner.nextLine();
+        System.out.println("📌 SYSTEM: Press [Enter] to continue...");
+        uiInput.nextLine();
     }
 
-    //Customized menu input
+    // Handles invalid input errors specifically for menu input
+    public static void handleMenuInvalidInput(int maxChoice) {
+        System.out.printf(Messages.MENU_ERROR_INVALID_INPUT + "%n", maxChoice);
+        uiInput.nextLine();
+        waitForEnter();
+        Display.clear();
+    }
+
+    // Custom Menu number of options
     public static int getMenuInput(int maxChoice) {
-        try {
-            String input = scanner.nextLine();
-            int choice = Integer.parseInt(input);
-            if (choice >= 1 && choice <= maxChoice) {
-                return choice;
-            }
-        } catch (NumberFormatException e) {
-            // Invalid input due to non-numeric value
-            // It is a good practice to have an NumberFormatException
-            // to handle unexpected input specifically or any errors/exceptions
-            // rather than using a general Exception catch
-            // Use the general Exception catch as a safety net
-            // reference: https://www.w3schools.com/java/java_try_catch.asp
-            System.out.println("Invalid choice. Please enter a number between 1 and " + maxChoice + ".");
-            return -1;
-        } catch (Exception e) {
-            // SAFETY NET for any other unexpected errors
-            System.out.println("Invalid choice. Please enter a number between 1 and " + maxChoice + ".");
-            return -1;
-        }
 
-        return -1; // if the input is not a number between 1 and 6
+        while (true) {
+            System.out.print("> ");
+            try {
+                int choice = uiInput.nextInt();
+                uiInput.nextLine();
+
+                if (choice >= 1 && choice <= maxChoice) {
+                    return choice;
+                } else {
+                    System.out.printf(Messages.MENU_ERROR_INVALID_INPUT + "%n", maxChoice);
+                    UI.waitForEnter();
+                    Display.clear();
+                }
+            } catch (InputMismatchException e) {
+                handleMenuInvalidInput(maxChoice);
+            } catch (Exception e) {
+                handleMenuInvalidInput(maxChoice);
+            }
+            /*
+            Exception Handling ⚠️:
+                Invalid input due to non-numeric value
+                It is a good practice to have an InputMismatchException
+                to handle unexpected input specifically or any [errors/exceptions]
+                rather than using a general Exception catch
+                Use the general Exception catch as a safety net
+                reference: https://www.youtube.com/watch?v=xTtL8E4LzTQ&t=33035s
+
+            It was pain to work with next() and nextLine() to get it working on nextInt():
+                Thanks for this tips
+                reference: https://youtu.be/B2TfQiFvyYo?si=UjpFgtPfJ9bUApVY
+             */
+        }
     }
+
+    // With no. of options but with custom Output Method Overloading
+    public static int getMenuInput(int maxChoice, String menuDisplay) {
+
+        while (true) {
+            Display.printBox(menuDisplay);
+            System.out.print("> ");
+            try {
+                int choice = uiInput.nextInt();
+                uiInput.nextLine();
+
+                if (choice >= 1 && choice <= maxChoice) {
+                    return choice;
+                } else {
+                    System.out.printf(Messages.MENU_ERROR_INVALID_INPUT + "%n", maxChoice);
+                    UI.waitForEnter();
+                    Display.clear();
+                }
+            } catch (InputMismatchException e) {
+                handleMenuInvalidInput(maxChoice);
+            } catch (Exception e) {
+                handleMenuInvalidInput(maxChoice);
+            }
+            /*
+            Exception Handling ⚠️:
+                Invalid input due to non-numeric value
+                It is a good practice to have an InputMismatchException
+                to handle unexpected input specifically or any [errors/exceptions]
+                rather than using a general Exception catch
+                Use the general Exception catch as a safety net
+                reference: https://www.youtube.com/watch?v=xTtL8E4LzTQ&t=33035s
+
+            It was pain to work with next() and nextLine() to get it working on nextInt():
+                Thanks for this tips
+                reference: https://youtu.be/B2TfQiFvyYo?si=UjpFgtPfJ9bUApVY
+             */
+        }
+    }
+
 }
