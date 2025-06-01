@@ -3,6 +3,7 @@
 // ▼ Messages - Stores reusable text content (ASCII art, menus)
 //   Only for content that's used in multiple places or too long
 //   to put inline without cluttering the main game logic
+//   or use methods like printBox() to generate box text
 // ────────────────────────────────────────────────────────────── 
 public class Messages {
 

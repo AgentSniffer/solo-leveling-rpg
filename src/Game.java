@@ -22,9 +22,14 @@ public class Game {
     }
 
     public static void goToDungeon() {
-        System.out.println("\n🏰 Entering dungeon...");
+        System.out.print("🏰 Entering dungeon...");
+        Display.delay(0.5);
+        Display.clear();
+        
         Monster enemy = makeRandomMonster();
         enemy.showMonster();
+        Display.delay(1);
+        Display.clear();
         
         boolean stillFighting = true;
         while (stillFighting) {
@@ -36,28 +41,32 @@ public class Game {
                 break;
             }
             
-            System.out.println("\n⚔️ BATTLE TIME! ⚔️");
+            System.out.print("⚔️ BATTLE TIME! ⚔️\n");
             System.out.println("Your HP: " + currentPlayer.hp + " | " + enemy.name + " HP: " + enemy.hp);
-            System.out.println("1. Attack the monster");
-            System.out.println("2. Run away");
+            Display.printBox(Messages.BATTLE_MENU_OPTIONS);
             
             int choice = UI.getMenuInput(2);
             
             if (choice == 1) {
                 // Player attacks first
                 currentPlayer.attack(enemy);
+                Display.clear();
                 // Check if monster died
                 if (!enemy.stillAlive()) {
-                    System.out.println("\n🎉 You killed the " + enemy.name + "!");
+                    System.out.print("🎉 You killed the " + enemy.name + "!\n");
                     int xpReward = 30 + (currentPlayer.level * 8);
                     currentPlayer.gainXP(xpReward);
                     stillFighting = false;
+                    Display.delay(1);
+                    Display.clear();
                 } else {
                     // Monster attacks back
                     enemy.attackPlayer(currentPlayer);
                 }
             } else if (choice == 2) {
                 System.out.println("🏃 You run away from the " + enemy.name + "!");
+                Display.delay(1);
+                Display.clear();
                 stillFighting = false;
             }
         }
@@ -66,6 +75,7 @@ public class Game {
         if (!currentPlayer.stillAlive()) {
             System.out.println("\n💀 " + currentPlayer.name + " died! Returning to main menu...");
             Display.delay(3);
+            Display.clear();
         }
     }
 
@@ -100,7 +110,6 @@ public class Game {
                 Display.delay(0.5);
                 Display.clear();
                 goToDungeon();
-                Display.delay(2);
                 return true;
             case 2:
                 System.out.println("Opening inventory...");

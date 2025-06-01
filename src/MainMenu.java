@@ -25,34 +25,34 @@ public class MainMenu {
 
         switch (choice) {
             case 1:
-                System.out.println("▶️  Starting your adventure");
-                Display.delay(2);
+                System.out.println("▶️  Starting your adventure...");
+                Display.delay(0.5);
                 Display.clear();
                 Game.startGame();
                 return true;
             case 2:
-                System.out.println("📂 Loading your saved journey");
-                Display.delay(2);
+                System.out.println("📂 Loading your saved journey...");
+                Display.delay(0.5);
                 Display.clear();
                 return true;
             case 3:
-                System.out.println("⚙️  Adjusting your experience");
-                Display.delay(2);
+                System.out.println("⚙️  Adjusting your experience...");
+                Display.delay(0.5);
                 Display.clear();
                 return true;
             case 4:
-                System.out.println("🔐 Entering the gate");
-                Display.delay(2);
+                System.out.println("🔐 Entering the gate...");
+                Display.delay(0.5);
                 Display.clear();
                 return true;
             case 5:
-                System.out.println("📝 Joining the hunter's guild");
-                Display.delay(2);
+                System.out.println("📝 Joining the hunter's guild...");
+                Display.delay(0.5);
                 Display.clear();
                 return true;
             case 6:
                 System.out.println("👋 Until we meet again, hunter. Arise!");
-                Display.delay(2);
+                Display.delay(0.5);
                 System.exit(0);
                 return false;
             default:
