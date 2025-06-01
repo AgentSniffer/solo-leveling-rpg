@@ -14,7 +14,7 @@ public class UI {
     // ─────────────────────────────────────────────────────────────
     // Waits for user to press Enter
     public static void waitForEnter() {
-        System.out.println(Messages.PROMPT_PRESS_ENTER);
+        System.out.println("Press Enter to continue...");
         uiInput.nextLine();
     }
 
@@ -240,7 +240,7 @@ public class UI {
     // Gets a valid hero name
     public static String getHeroName() {
         while (true) {
-            System.out.println(Messages.PROMPT_HUNTER_NAME);
+            System.out.println("👤 What should we call you, hunter?");
             System.out.print("> ");
             try {
                 String input = uiInput.nextLine().trim();
@@ -249,7 +249,8 @@ public class UI {
                 } else if (hasInvalidCharacters(input)) {
                     handleInputError(Messages.ERROR_NAME_FORMAT);
                 } else {
-                    System.out.printf(Messages.SUCCESS_NAME_ENTERED, input);
+                    Display.clear();
+                    System.out.printf("✨ Welcome, %s! The dungeon awaits!%n", input);
                     Display.delay(2);
                     Display.clear();
                     return input;
