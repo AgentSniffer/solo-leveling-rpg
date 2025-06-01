@@ -1,44 +1,62 @@
-
-// Simple MainMenu class - manages game menus
+// ─────────────────────────────────────────────────────────────
+// ▼ MainMenu - Handles the Main Game Menu
+// ─────────────────────────────────────────────────────────────
 public class MainMenu {
 
-    public static void show() {
+    // ─────────────────────────────────────────────────────────────
+    // ▼ Show Main Menu Intro Screen
+    // ─────────────────────────────────────────────────────────────
+
+    public static void showWelcomeMenu() {
         Display.clear();
         Display.logo();
         Display.delay(2);
         Display.showWelcomeScreen();
         UI.waitForEnter();
         Display.clear();
-    }
+    }        
 
-    public static void handleChoice(int choice) {
+    // ─────────────────────────────────────────────────────────────
+    // ▼ Handle Menu Selection
+    // ─────────────────────────────────────────────────────────────
+
+    public static boolean handleMenuChoice(int choice) {
         Display.clear();
+
         switch (choice) {
             case 1:
-                System.out.println(Messages.CHOICE_START_GAME);
+                System.out.println(Messages.ACTION_START_GAME);
                 Display.delay(2);
-                break;
+                Display.clear();
+                Game.startGame();
+                return true;
             case 2:
-                System.out.println(Messages.CHOICE_LOAD_GAME);
+                System.out.println(Messages.ACTION_LOAD_GAME);
                 Display.delay(2);
-                break;
+                Display.clear();
+                return true;
             case 3:
-                System.out.println(Messages.CHOICE_OPTIONS);
+                System.out.println(Messages.ACTION_OPTIONS);
                 Display.delay(2);
-                break;
+                Display.clear();
+                return true;
             case 4:
-                System.out.println(Messages.CHOICE_LOGIN);
+                System.out.println(Messages.ACTION_LOGIN);
                 Display.delay(2);
-                break;
+                Display.clear();
+                return true;
             case 5:
-                System.out.println(Messages.CHOICE_REGISTER);
+                System.out.println(Messages.ACTION_REGISTER);
                 Display.delay(2);
-                break;
+                Display.clear();
+                return true;
             case 6:
-                System.out.println(Messages.CHOICE_EXIT);
+                System.out.println(Messages.ACTION_EXIT);
                 Display.delay(2);
                 System.exit(0);
-                break;
+                return false;
+            default:
+                return true;
         }
     }
 }

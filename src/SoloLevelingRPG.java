@@ -1,13 +1,16 @@
 
-// Main game class - controls everything
+// Main game class - calls everything Arisee.....
 public class SoloLevelingRPG {
 
     public static void main(String[] args) {
-
-        MainMenu.show();
-
-        int choice = UI.getMenuInput(6, Messages.MENU_OPTIONS);  // Already handles invalid input internally
-        System.out.printf(Messages.MENU_SUCCESS_CHOICE + "%n", choice);
-        MainMenu.handleChoice(choice);
+        MainMenu.showWelcomeMenu();
+        // ======================================
+        boolean running = true;
+        while (running) {
+            int choice = UI.getMenuInput(6, Messages.MENU_OPTIONS, Messages.ASCII_GAME_LOGO);
+            running = MainMenu.handleMenuChoice(choice); // Returns false when player wants to exit
+        }
+        // ======================================
+        UI.uiInput.close(); // Close scanner when completely done
     }
 }
