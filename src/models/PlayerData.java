@@ -28,8 +28,8 @@ public class PlayerData {
     }
 
     public String getStatus() {
-        return "=== " + playerName + "'s Game ===\n"
-                + "Level: " + level + "\n"
-                + "Exp: " + exp + "/100\n";
+        return "⚔️  " + playerName + "'s Game\n"
+                + "🛡️  Level: " + level + "\n"
+                + "✨ Exp: " + exp + "/100";
     }
 }

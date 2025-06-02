@@ -17,11 +17,8 @@ public class GameUI {
     public static void showLoginMenu() {
         while (true) {
             clearScreen();
-            System.out.println("=== LOGIN / REGISTER ===");
-            System.out.println("1. Login");
-            System.out.println("2. Register");
-            System.out.println("3. Exit");
-            System.out.print("\nEnter your choice: ");
+            printBox("LOGIN / REGISTER\n1. Login\n2. Register\n3. Exit");
+            System.out.print("> ");
 
             String input = scanner.nextLine();
 
@@ -46,7 +43,7 @@ public class GameUI {
 
     static boolean login() {
         clearScreen();
-        System.out.println("=== LOGIN ===");
+        printBox("LOGIN");
         System.out.print("Username: ");
         String name = scanner.nextLine().trim();
         System.out.print("Password: ");
@@ -68,7 +65,7 @@ public class GameUI {
 
     static void register() {
         clearScreen();
-        System.out.println("=== REGISTER ===");
+        printBox("REGISTER");
 
         String name;
         while (true) {
@@ -108,13 +105,8 @@ public class GameUI {
     static void showMainMenu() {
         while (running) {
             clearScreen();
-            System.out.println("=== SOLO LEVELING GAME ===");
-            System.out.println("1. New Game");
-            System.out.println("2. Load Game");
-            System.out.println("3. Options");
-            System.out.println("4. Admin");
-            System.out.println("5. Exit");
-            System.out.print("\nEnter choice: ");
+            printBox("SOLO LEVELING GAME\n1. New Game\n2. Load Game\n3. Options\n4. Admin\n5. Exit");
+            System.out.print("> ");
 
             String input = scanner.nextLine();
 
@@ -154,7 +146,7 @@ public class GameUI {
         }
 
         clearScreen();
-        System.out.println("=== NEW GAME ===");
+        printBox("NEW GAME");
         System.out.print("Character name: ");
         String name = scanner.nextLine().trim();
         if (name.isEmpty()) {
@@ -187,9 +179,8 @@ public class GameUI {
         while (true) {
             clearScreen();
             System.out.println(player.getStatus());
-            System.out.println("1. Hunt Monsters (Gain EXP)");
-            System.out.println("2. Save & Return to Menu");
-            System.out.print("\nChoose an action: ");
+            printBox("ACTIONS\n1. Hunt Monsters (Gain EXP)\n2. Save & Return to Menu");
+            System.out.print("> ");
 
             String input = scanner.nextLine();
             switch (input.trim()) {
@@ -214,13 +205,10 @@ public class GameUI {
     static void showOptions() {
         while (true) {
             clearScreen();
-            System.out.println("=== OPTIONS ===");
-            System.out.println("1. Toggle Sound");
-            System.out.println("2. Change Difficulty");
-            System.out.println("3. Back");
-            System.out.print("\nEnter choice: ");
-
-            switch (scanner.nextLine().trim()) {
+            printBox("OPTIONS\n1. Toggle Sound\n2. Change Difficulty\n3. Back");
+            System.out.print("> ");
+            String input = scanner.nextLine();
+            switch (input.trim()) {
                 case "1" -> {
                     System.out.println("\nSound toggled!");
                     waitForInput();
@@ -243,12 +231,8 @@ public class GameUI {
     static void showAdminMenu() {
         while (true) {
             clearScreen();
-            System.out.println("\n=== ADMIN MENU ===");
-            System.out.println("1. List All Users");
-            System.out.println("2. Reset Database");
-            System.out.println("3. MySQL Queries");
-            System.out.println("4. Back to Main Menu");
-            System.out.print("\nEnter choice: ");
+            printBox("ADMIN MENU\n1. List All Users\n2. Reset Database\n3. MySQL Queries\n4. Back to Main Menu");
+            System.out.print("> ");
 
             switch (scanner.nextLine().trim()) {
                 case "1" -> {
@@ -283,7 +267,7 @@ public class GameUI {
     static void runSqlQueryMenu() {
         while (true) {
             clearScreen();
-            System.out.println("=== RUN SQL QUERY (type 'back' to return) ===");
+            printBox("RUN SQL QUERY (type 'back' to return)");
             System.out.print("MySQL [solo_leveling_user]> ");
 
             String query = scanner.nextLine().trim();
@@ -314,5 +298,73 @@ public class GameUI {
     static void waitForInput() {
         System.out.println("\nPress Enter...");
         scanner.nextLine();
+    }
+
+    public static void printBox(String text, int marginLeft, int marginRight, int marginTop, int marginBottom) {
+        String[] textLines = text.split("\n");
+
+        // Find the longest line
+        int maxLineLength = 0;
+        for (String line : textLines) {
+            if (line.length() > maxLineLength) {
+                maxLineLength = line.length();
+            }
+        }
+
+        int totalWidth = maxLineLength + marginLeft + marginRight;
+
+        // Create horizontal line
+        String horizontalLine = "";
+        for (int i = 0; i < totalWidth; i++) {
+            horizontalLine += "═";
+        }
+
+        // Print top border
+        System.out.println("╔" + horizontalLine + "╗");
+
+        // Print top vertical padding
+        for (int i = 0; i < marginTop; i++) {
+            System.out.print("║");
+            for (int j = 0; j < totalWidth; j++) {
+                System.out.print(" ");
+            }
+            System.out.println("║");
+        }
+
+        // Print text lines with margins
+        for (String line : textLines) {
+            int rightPadding = maxLineLength - line.length();
+
+            System.out.print("║");
+
+            for (int i = 0; i < marginLeft; i++) {
+                System.out.print(" ");
+            }
+
+            System.out.print(line);
+
+            for (int i = 0; i < rightPadding + marginRight; i++) {
+                System.out.print(" ");
+            }
+
+            System.out.println("║");
+        }
+
+        // Print bottom vertical padding
+        for (int i = 0; i < marginBottom; i++) {
+            System.out.print("║");
+            for (int j = 0; j < totalWidth; j++) {
+                System.out.print(" ");
+            }
+            System.out.println("║");
+        }
+
+        // Print bottom border
+        System.out.println("╚" + horizontalLine + "╝");
+    }
+
+    // method overloading default padding
+    public static void printBox(String text) {
+        printBox(text, 1, 1, 0, 0);
     }
 }

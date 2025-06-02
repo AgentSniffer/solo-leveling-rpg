@@ -213,9 +213,12 @@ public class GameDB {
                 + "LEFT JOIN game_states gs ON u.username = gs.username";
 
         try (Statement s = c.createStatement(); ResultSet r = s.executeQuery(query)) {
-            System.out.println("\n=== ALL USERS ===");
-            System.out.printf("%-20s %-20s %-10s %s\n", "USERNAME", "CHARACTER", "LEVEL", "EXP");
-            System.out.println("-".repeat(60));
+            StringBuilder header = new StringBuilder();
+            header.append("\nALL USERS\n\n");
+            header.append(String.format("%-20s %-20s %-10s %s\n", "USERNAME", "CHARACTER", "LEVEL", "EXP"));
+            header.append("-".repeat(60));
+
+            System.out.println(header.toString());
 
             while (r.next()) {
                 String username = r.getString("username");
