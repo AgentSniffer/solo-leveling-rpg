@@ -1,5 +1,4 @@
 For Mac and Linux:
-mkdir -p bin
 javac -cp "src/mysql-connector-j-9.3.0.jar" -d bin $(find src -name "\*.java")
 java -cp "bin:src/mysql-connector-j-9.3.0.jar" Main
 
