@@ -1,10 +1,11 @@
+package models;
 
-class User {
+public class User {
 
-    String username;
-    String password;
+    public String username;
+    public String password;
 
-    User(String u, String p) {
+    public User(String u, String p) {
         username = u;
         password = p;
     }

@@ -2,6 +2,8 @@ package ui;
 
 import db.GameDB;
 import java.util.Scanner;
+import models.User;
+import models.PlayerData;
 
 public class GameUI {
 
@@ -11,7 +13,7 @@ public class GameUI {
     static User user = null;
     static PlayerData player = null;
 
-    static void showLoginMenu() {
+    public static void showLoginMenu() {
         while (true) {
             clearScreen();
             System.out.println("=== LOGIN / REGISTER ===");

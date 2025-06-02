@@ -6,6 +6,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import models.User;
+import models.PlayerData;
 
 public class GameDB {
 
@@ -24,7 +26,7 @@ public class GameDB {
         }
     }
 
-    static void ensureDatabaseExists() {
+    public static void ensureDatabaseExists() {
         Connection c = null;
         try {
             c = DriverManager.getConnection(DB_BASE_URL, DB_USER, DB_PASS);
@@ -44,7 +46,7 @@ public class GameDB {
         }
     }
 
-    static void initDB() {
+    public static void initDB() {
         Connection c = getConnection();
         if (c == null) {
             System.err.println("Failed to connect to database");
@@ -77,7 +79,7 @@ public class GameDB {
         }
     }
 
-    static boolean userExists(String name) {
+    public static boolean userExists(String name) {
         Connection c = getConnection();
         if (c == null) {
             return false;
@@ -100,7 +102,7 @@ public class GameDB {
         }
     }
 
-    static User authenticateUser(String name, String pass) {
+    public static User authenticateUser(String name, String pass) {
         Connection c = getConnection();
         if (c == null) {
             return null;
@@ -127,7 +129,7 @@ public class GameDB {
         }
     }
 
-    static boolean createUser(String name, String pass) {
+    public static boolean createUser(String name, String pass) {
         Connection c = getConnection();
         if (c == null) {
             return false;
@@ -149,7 +151,7 @@ public class GameDB {
         }
     }
 
-    static void saveGameState(User user, PlayerData player) {
+    public static void saveGameState(User user, PlayerData player) {
         if (player == null || user == null) {
             return;
         }
@@ -178,7 +180,7 @@ public class GameDB {
         }
     }
 
-    static PlayerData loadGameState(User user) {
+    public static PlayerData loadGameState(User user) {
         if (user == null) {
             return null;
         }
@@ -216,7 +218,7 @@ public class GameDB {
         }
     }
 
-    static void listAllUsers() {
+    public static void listAllUsers() {
         Connection c = getConnection();
         if (c == null) {
             return;
@@ -250,7 +252,7 @@ public class GameDB {
         }
     }
 
-    static void resetDatabase() {
+    public static void resetDatabase() {
         Connection c = getConnection();
         if (c == null) {
             return;
@@ -274,7 +276,7 @@ public class GameDB {
         }
     }
 
-    static void runSqlQuery(String query) {
+    public static void runSqlQuery(String query) {
         if (query.endsWith(";")) {
             query = query.substring(0, query.length() - 1);
         }
