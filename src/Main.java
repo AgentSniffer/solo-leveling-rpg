@@ -10,9 +10,8 @@ public class Main {
             GameDB.ensureDatabaseExists();
             GameDB.initDB();
             GameUI.showLoginMenu();
-        } catch (Exception e) {
+        } catch (ClassNotFoundException e) {
             System.err.println("Error: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 }
