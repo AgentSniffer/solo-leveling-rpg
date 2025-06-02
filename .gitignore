@@ -1,8 +1,2 @@
-# Trash and temporary folders
-trash/
-trash/*
-test/
-test/*
-
 # Java compiled class files
-*.class
+src/*.class
