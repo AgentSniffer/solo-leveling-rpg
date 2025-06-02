@@ -6,8 +6,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import models.User;
 import models.PlayerData;
+import models.User;
 
 public class GameDB {
 
@@ -27,22 +27,11 @@ public class GameDB {
     }
 
     public static void ensureDatabaseExists() {
-        Connection c = null;
-        try {
-            c = DriverManager.getConnection(DB_BASE_URL, DB_USER, DB_PASS);
-            Statement s = c.createStatement();
+        try (Connection c = DriverManager.getConnection(DB_BASE_URL, DB_USER, DB_PASS); Statement s = c.createStatement()) {
             s.execute("CREATE DATABASE IF NOT EXISTS " + DB_NAME);
-            s.close();
         } catch (SQLException e) {
             System.err.println("Error setting up database: " + e.getMessage());
             System.exit(1);
-        } finally {
-            try {
-                if (c != null) {
-                    c.close();
-                }
-            } catch (SQLException e) {
-            }
         }
     }
 
@@ -94,9 +83,7 @@ public class GameDB {
             return false;
         } finally {
             try {
-                if (c != null) {
-                    c.close();
-                }
+                c.close();
             } catch (SQLException e) {
             }
         }
@@ -110,13 +97,11 @@ public class GameDB {
 
         try (PreparedStatement s = c.prepareStatement("SELECT password FROM users WHERE username = ?")) {
             s.setString(1, name);
-            ResultSet r = s.executeQuery();
-
-            if (r.next() && r.getString(1).equals(pass)) {
-                r.close();
-                return new User(name, pass);
+            try (ResultSet r = s.executeQuery()) {
+                if (r.next() && r.getString(1).equals(pass)) {
+                    return new User(name, pass);
+                }
             }
-            r.close();
             return null;
         } catch (SQLException e) {
             System.err.println("Login failed: " + e.getMessage());
@@ -194,18 +179,16 @@ public class GameDB {
                 "SELECT player_name, level, exp FROM game_states WHERE username = ?")) {
 
             s.setString(1, user.username);
-            ResultSet r = s.executeQuery();
-
-            if (r.next()) {
-                PlayerData player = new PlayerData(
-                        r.getString("player_name"),
-                        r.getInt("level"),
-                        r.getInt("exp")
-                );
-                r.close();
-                return player;
+            try (ResultSet r = s.executeQuery()) {
+                if (r.next()) {
+                    PlayerData player = new PlayerData(
+                            r.getString("player_name"),
+                            r.getInt("level"),
+                            r.getInt("exp")
+                    );
+                    return player;
+                }
             }
-            r.close();
             return null;
         } catch (SQLException e) {
             System.err.println("Load failed: " + e.getMessage());

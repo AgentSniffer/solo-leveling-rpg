@@ -1,9 +1,10 @@
 package ui;
 
 import db.GameDB;
+import java.io.IOException;
 import java.util.Scanner;
-import models.User;
 import models.PlayerData;
+import models.User;
 
 public class GameUI {
 
@@ -306,8 +307,7 @@ public class GameUI {
             } else {
                 new ProcessBuilder("clear").inheritIO().start().waitFor();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException | InterruptedException e) {
         }
     }
 
