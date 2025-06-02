@@ -1,2 +1,9 @@
-# Java compiled class files
-src/*.class
+# Ignore everything by default
+*
+
+# Except the source folder
+!src/
+!src/**
+
+# But still ignore compiled Java class files
+src/**/*.class
