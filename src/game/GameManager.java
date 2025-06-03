@@ -2,7 +2,7 @@ package game;
 
 import db.GameDB;
 import java.util.HashMap;
-
+import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import models.PlayerData;
@@ -11,8 +11,23 @@ import models.User;
 // Manages game mechanics and dungeon system
 public class GameManager {
 
+    // Available roles with their bonuses
+    public static final String[] ROLES = {
+        "Fighter", "Healer", "Tank", "Assassin", "Ranger", "Mage"
+    };
+
+    // Role-specific bonuses (attack, defense, special)
+    private static final Map<String, int[]> ROLE_BONUSES = new HashMap<>() {{
+        put("Fighter", new int[]{5, 0, 0});    // +5% attack
+        put("Healer", new int[]{0, 5, 10});     // +5% defense, +10% healing
+        put("Tank", new int[]{0, 10, 0});       // +10% defense
+        put("Assassin", new int[]{10, -5, 0});   // +10% attack, -5% defense
+        put("Ranger", new int[]{7, 3, 0});       // +7% attack, +3% defense
+        put("Mage", new int[]{8, 0, 5});         // +8% attack, +5% healing
+    }};
+
     // Dungeon names
-    public static String[] dungeonNames = {
+    public static final String[] DUNGEON_NAMES = {
         "Forest of Shadows",
         "Ice Cavern",
         "Volcanic Crater",
@@ -21,7 +36,7 @@ public class GameManager {
     };
 
     // Predefined enemies for each dungeon
-    public static Enemy[][] dungeonEnemies = {
+    public static final Enemy[][] DUNGEON_ENEMIES = {
         {new Enemy("Forest Goblin", 30, 10, false),
             new Enemy("Dark Wolf", 40, 15, false),
             new Enemy("Shadow Spider", 50, 18, false),
@@ -49,6 +64,18 @@ public class GameManager {
         }
     };
 
+    // Apply role bonuses to player stats
+    private void applyRoleBonuses() {
+        if (player.role == null || !ROLE_BONUSES.containsKey(player.role)) {
+            return;
+        }
+        
+        int[] bonuses = ROLE_BONUSES.get(player.role);
+        player.attackBonus = (int)(player.attackBonus * (1 + bonuses[0] / 100.0));
+        player.defenseBonus = (int)(player.defenseBonus * (1 + bonuses[1] / 100.0));
+        player.healingBonus = (int)(player.healingBonus * (1 + bonuses[2] / 100.0));
+    }
+
     // Current player in the game
     private final PlayerData player;
     private final User user;
@@ -56,8 +83,7 @@ public class GameManager {
     // Time when player was defeated (for recovery cooldown)
     private long defeatTime = 0;
 
-    // Shadow uses per battle
-    private int shadowUses = 0;
+    // Shadow uses are now handled by CombatSystem
 
     // Track dungeon progress using HashMap
     private final HashMap<Integer, DungeonProgress> dungeonProgress = new HashMap<>();
@@ -68,17 +94,21 @@ public class GameManager {
     // Random number generator
     private final Random random = new Random();
 
+    private final CombatSystem combatSystem;
+
     public GameManager(PlayerData player, User user, Scanner scanner) {
         this.player = player;
         this.user = user;
         this.scanner = scanner;
+        this.combatSystem = new CombatSystem(player);
+        applyRoleBonuses();
         loadProgress();
     }
 
     // Load progress from database
     private void loadProgress() {
         // Initialize all dungeons with empty progress
-        for (int i = 0; i < dungeonNames.length; i++) {
+        for (int i = 0; i < DUNGEON_NAMES.length; i++) {
             dungeonProgress.put(i, new DungeonProgress());
         }
 
@@ -89,7 +119,7 @@ public class GameManager {
                 // Update only the dungeons that have saved progress
                 for (var entry : savedProgress.entrySet()) {
                     int dungeonId = entry.getKey();
-                    if (dungeonId >= 0 && dungeonId < dungeonNames.length) {
+                    if (dungeonId >= 0 && dungeonId < DUNGEON_NAMES.length) {
                         dungeonProgress.put(dungeonId, entry.getValue());
                     }
                 }
@@ -166,20 +196,20 @@ public class GameManager {
         }
 
         printBox("DUNGEONS");
-        for (int i = 0; i < dungeonNames.length; i++) {
+        for (int i = 0; i < DUNGEON_NAMES.length; i++) {
             DungeonProgress progress = dungeonProgress.get(i);
             String status = progress.gateClosed ? "[CLOSED]" : "[OPEN]";
-            System.out.printf("%d. %s %s - Progress: %d/4\n", i + 1, dungeonNames[i], status, progress.enemiesDefeated);
+            System.out.printf("%d. %s %s - Progress: %d/4\n", i + 1, DUNGEON_NAMES[i], status, progress.enemiesDefeated);
         }
 
-        System.out.print("\nSelect a dungeon (1-" + dungeonNames.length + ") or 0 to return: ");
+        System.out.print("\nSelect a dungeon (1-" + DUNGEON_NAMES.length + ") or 0 to return: ");
         try {
             int choice = Integer.parseInt(scanner.nextLine().trim());
             if (choice == 0) {
                 return;
             }
 
-            if (choice > 0 && choice <= dungeonNames.length) {
+            if (choice > 0 && choice <= DUNGEON_NAMES.length) {
                 int dungeonIndex = choice - 1;
                 DungeonProgress progress = dungeonProgress.get(dungeonIndex);
 
@@ -217,15 +247,101 @@ public class GameManager {
         System.out.println(line);
     }
 
-    // Attempt to escape from combat
-    private boolean attemptEscape() {
-        int escapeChance = 60; // 60% chance to escape
-        if (random.nextInt(100) < escapeChance) {
-            System.out.println("You successfully escaped!");
-            return true;
+    // Handle combat with an enemy
+    public void enterDungeon(int dungeonIndex) {
+        if (dungeonIndex < 0 || dungeonIndex >= DUNGEON_NAMES.length) {
+            System.out.println("Invalid dungeon number!");
+            return;
+        }
+
+        // Check if player is in recovery
+        if (isRecovering()) {
+            System.out.println("You are still recovering from your last defeat. Please wait " + 
+                getRecoveryTimeRemaining() + " seconds before entering a dungeon.");
+            return;
+        }
+
+        // Get or create dungeon progress
+        DungeonProgress progress = dungeonProgress.computeIfAbsent(dungeonIndex, k -> new DungeonProgress());
+        
+        // Check if we need to spawn the boss
+        boolean isBossFight = progress.enemiesDefeated >= 5 && !progress.gateClosed;
+        
+        // Create enemy for this encounter
+        Enemy enemy;
+        if (isBossFight) {
+            // Boss fight
+            enemy = DUNGEON_ENEMIES[dungeonIndex][3];
+            System.out.println("\n=== BOSS BATTLE: " + enemy.name.toUpperCase() + " ===");
+            System.out.println("The Gatekeeper appears! Defeat it to close the dungeon gate!");
         } else {
-            System.out.println("Failed to escape!");
-            return false;
+            // Regular enemy
+            enemy = DUNGEON_ENEMIES[dungeonIndex][random.nextInt(DUNGEON_ENEMIES[dungeonIndex].length - 1)];
+            // Create a fresh copy of the enemy
+            enemy = new Enemy(enemy);
+            System.out.println("\nA wild " + enemy.name + " appears!");
+        }
+
+        // Start combat
+        boolean playerWon = combatSystem.combat(enemy, scanner);
+
+        // Handle combat result
+        if (playerWon) {
+            if (isBossFight) {
+                // Player defeated the boss
+                progress.gateClosed = true;
+                System.out.println("\nYou have closed the gate of " + DUNGEON_NAMES[dungeonIndex] + "!");
+                System.out.println("The dungeon has been cleared!");
+                
+                // Grant bonus XP for boss defeat
+                int xpGain = 100 + (dungeonIndex * 20);
+                player.gainExp(xpGain);
+                System.out.println("You gained " + xpGain + " XP!");
+                
+                // Add a shadow from the boss
+                String shadowName = "Shadow " + enemy.name;
+                player.shadows.add(shadowName);
+                System.out.println("You gained a new shadow: " + shadowName);
+                
+                // Save progress
+                saveProgress();
+            } else {
+                // Player defeated a regular enemy
+                progress.enemiesDefeated++;
+                
+                // Grant XP based on dungeon level
+                int xpGain = 10 + (dungeonIndex * 2);
+                player.gainExp(xpGain);
+                System.out.println("You gained " + xpGain + " XP!");
+                
+                // Random chance to get a shadow (20% chance)
+                if (random.nextDouble() < 0.2) {
+                    String shadowName = "Shadow " + enemy.name;
+                    player.shadows.add(shadowName);
+                    System.out.println("You gained a new shadow: " + shadowName);
+                }
+                
+                // Save progress after each enemy
+                saveProgress();
+            }
+            
+            // Heal player after battle (25% of max HP, up to max)
+            int healAmount = (int)(player.getMaxHealth() * 0.25);
+            int newHealth = Math.min(player.getHealth() + healAmount, player.getMaxHealth());
+            player.setHealth(newHealth);
+            System.out.println("You recovered " + (newHealth - player.getHealth() + healAmount) + " HP after battle.");
+        } else {
+            // Player was defeated
+            System.out.println("\nYou were defeated in " + DUNGEON_NAMES[dungeonIndex] + "...");
+            
+            // Set recovery cooldown (1 minute)
+            defeatTime = System.currentTimeMillis();
+            
+            // Reset player HP to 1 after defeat
+            player.setHealth(1);
+            
+            // Save progress
+            saveProgress();
         }
     }
 
@@ -235,186 +351,6 @@ public class GameManager {
             System.out.println("Combat error: Player or enemy is null!");
             return false;
         }
-
-        System.out.println("\nYou are fighting " + enemy.name + "!");
-        if (enemy.isBoss) {
-            System.out.println("*** BOSS FIGHT ***");
-        }
-
-        // Reset shadow uses for this combat
-        shadowUses = player.getShadows().size();
-
-        while (player.getHealth() > 0 && enemy.hp > 0) {
-            System.out.println("\n" + enemy.name + "'s HP: " + enemy.hp + "/" + enemy.maxHp);
-            System.out.println("Your HP: " + player.getHealth() + "/" + player.getMaxHealth());
-
-            // Show combat options
-            System.out.println("Choose an action:");
-            System.out.println("1. Attack");
-            if (!player.getShadows().isEmpty() && shadowUses > 0) {
-                System.out.println("2. Summon Shadow (" + shadowUses + " uses left)");
-                System.out.println("3. Run");
-            } else {
-                System.out.println("2. Run");
-            }
-
-            System.out.print("> ");
-            String input = scanner.nextLine().trim();
-
-            // Process player action
-            if (input.equals("1")) {
-                // Player attacks enemy
-                int playerDamage = 10 + player.level * 2;
-                if (player.getRole() != null && player.getRole().equals("Hunter")) {
-                    playerDamage += 5;
-                }
-
-                // Add small random variation to damage (±3)
-                playerDamage += random.nextInt(7) - 3;
-                if (playerDamage < 1) {
-                    playerDamage = 1; // Ensure minimum 1 damage
-                }
-                enemy.hp -= playerDamage;
-                System.out.println("You dealt " + playerDamage + " damage to " + enemy.name);
-            } else if (input.equals("2") && !player.getShadows().isEmpty() && shadowUses > 0) {
-                // Summon shadow to attack
-                shadowUses--;
-                int shadowDamage = 20 + player.level * 3;
-                // Add variation
-                shadowDamage += random.nextInt(11) - 5;
-                if (shadowDamage < 1) {
-                    shadowDamage = 1;
-                }
-
-                String shadowName = player.getShadows().get(random.nextInt(player.getShadows().size()));
-                enemy.hp -= shadowDamage;
-                System.out.println("You summoned " + shadowName + " who dealt " + shadowDamage + " damage!");
-
-                // Healer bonus on shadow summon
-                if (player.getRole() != null && player.getRole().equals("Healer")) {
-                    int healAmount = 5 + player.level;
-                    player.setHealth(Math.min(player.getHealth() + healAmount, player.getMaxHealth()));
-                    System.out.println("Your healing powers restore " + healAmount + " HP.");
-                }
-            } else if ((input.equals("2") || input.equals("3"))
-                    && (player.getShadows().isEmpty() || shadowUses <= 0 || input.equals("3"))) {
-                // Run option
-                if (enemy.isBoss) {
-                    System.out.println("You cannot run from a boss fight!");
-                    continue;
-                }
-
-                if (attemptEscape()) {
-                    return false; // Combat ends, player escaped
-                }
-            } else {
-                System.out.println("Invalid choice!");
-                continue;
-            }
-
-            // Enemy's turn if still alive
-            if (enemy.hp > 0) {
-                int enemyDamage = enemy.damage + random.nextInt(5) - 2; // ±2 damage variation
-                if (enemyDamage < 1) {
-                    enemyDamage = 1;
-                }
-
-                // Tank role takes half damage
-                if (player.getRole() != null && player.getRole().equals("Tank")) {
-                    enemyDamage = Math.max(1, enemyDamage / 2);
-                }
-
-                player.setHealth(player.getHealth() - enemyDamage);
-                System.out.println(enemy.name + " dealt " + enemyDamage + " damage to you!");
-            }
-        }
-
-        // Check combat result
-        if (player.getHealth() <= 0) {
-            System.out.println("\n❌ You were defeated by " + enemy.name + "...");
-            return false;
-        }
-
-        return true; // Player won
-    }
-
-    // Enter specified dungeon
-    public void enterDungeon(int dungeonIndex) {
-        DungeonProgress progress = dungeonProgress.get(dungeonIndex);
-        if (progress == null) {
-            progress = new DungeonProgress();
-            dungeonProgress.put(dungeonIndex, progress);
-        }
-
-        if (progress.gateClosed) {
-            System.out.println("This dungeon gate is already closed!");
-            return;
-        }
-
-        System.out.println("\nEntering " + dungeonNames[dungeonIndex] + "...");
-        System.out.println("You need to defeat 4 enemies to close this dungeon gate.");
-        System.out.printf("[Progress: %d/4 enemies defeated]\n", progress.enemiesDefeated);
-
-        Enemy[] enemies = dungeonEnemies[dungeonIndex];
-        for (int i = progress.enemiesDefeated; i < 4; i++) {
-            Enemy enemy = new Enemy(enemies[i]);
-            System.out.println("\nEncountered " + enemy.name + (enemy.isBoss ? " (Boss)!" : "") + " (HP: " + enemy.hp + ")");
-
-            boolean victory = combat(enemy);
-            if (!victory) {
-                defeatTime = System.currentTimeMillis();
-                saveProgress();
-                return;
-            }
-
-            // Handle victory
-            System.out.println("\nYou defeated " + enemy.name + "!");
-
-            // Check for shadow acquisition (15% chance for normal enemies, 40% for bosses)
-            int shadowChance = enemy.isBoss ? 40 : 15;
-            if (random.nextInt(100) < shadowChance) {
-                String shadowName = enemy.name + " Shadow";
-                player.getShadows().add(shadowName);
-                System.out.println("\n🔥 You extracted the shadow of " + enemy.name + "! 🔥");
-                System.out.println("Your new shadow monarch will aid you in battle.");
-            }
-
-            // Healing for Healer role
-            if (player.getRole() != null && player.getRole().equals("Healer")) {
-                int healAmount = player.getMaxHealth() / 10;
-                player.setHealth(Math.min(player.getHealth() + healAmount, player.getMaxHealth()));
-                System.out.println("Your healing powers restore " + healAmount + " HP.");
-            }
-
-            // Award EXP
-            int expGained = 20 + enemy.damage * 2;
-            if (enemy.isBoss) {
-                expGained *= 3;
-            }
-            player.gainExp(expGained);
-            System.out.printf("Gained %d EXP! (%d/%d to next level)%n",
-                    expGained, player.exp, player.level * 100);
-
-            progress.enemiesDefeated++;
-
-            if (progress.enemiesDefeated >= 4) {
-                progress.gateClosed = true;
-                System.out.println("\nCongratulations! You've closed the dungeon gate!");
-
-                // Extra rewards for completing a dungeon
-                int bonusExp = 50 + dungeonIndex * 25;
-                player.gainExp(bonusExp);
-                System.out.println("Bonus EXP for completing dungeon: " + bonusExp);
-
-                // Heal player after completing dungeon
-                player.setHealth(player.getMaxHealth());
-                System.out.println("Your health has been fully restored!");
-            }
-
-            System.out.print("\nPress Enter to continue...");
-            scanner.nextLine();
-        }
-
-        saveProgress();
+        return combatSystem.combat(enemy, scanner);
     }
 }

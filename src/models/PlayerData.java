@@ -1,16 +1,19 @@
 package models;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PlayerData {
-
     public String playerName;
     public int level;
     public int exp;
-    private int health;
-    private int maxHealth;
-    private String role;
-    private List<String> shadows;
+    public int health;
+    public int maxHealth;
+    public String role;
+    public List<String> shadows;
+    public int attackBonus = 0;
+    public int defenseBonus = 0;
+    public int healingBonus = 0;
 
     public PlayerData(String name) {
         playerName = name;
@@ -30,14 +33,14 @@ public class PlayerData {
         shadows = new ArrayList<>();
     }
 
-    public PlayerData(String name, int lvl, int xp, int hp, int maxHp, String role, List<String> shadows) {
+    public PlayerData(String name, int lvl, int xp, int hp, int maxHp, String playerRole, List<String> playerShadows) {
         playerName = name;
         level = lvl;
         exp = xp;
         health = hp;
         maxHealth = maxHp;
-        this.role = role;
-        this.shadows = shadows != null ? shadows : new ArrayList<>();
+        role = playerRole;
+        shadows = playerShadows != null ? playerShadows : new ArrayList<>();
     }
 
     public void gainExp(int amount) {
@@ -58,56 +61,67 @@ public class PlayerData {
     }
 
     public String getDetailedStatus() {
-        StringBuilder status = new StringBuilder();
-        status.append("⚔️  ").append(playerName).append("'s Game\n");
-        status.append("🛡️  Level: ").append(level).append("\n");
-        status.append("✨ Exp: ").append(exp).append("/100\n");
-        status.append("❤️  Health: ").append(health).append("/").append(maxHealth).append("\n");
+        String status = "⚔️  " + playerName + "'s Game\n"
+                + "🛡️  Level: " + level + "\n"
+                + "✨ Exp: " + exp + "/100\n"
+                + "❤️  Health: " + health + "/" + maxHealth + "\n";
 
         if (role != null && !role.isEmpty()) {
-            status.append("🧙  Role: ").append(role).append("\n");
+            status += "🧙  Role: " + role + "\n";
         }
 
-        status.append("👻  Shadows: ");
+        status += "👻  Shadows: ";
         if (shadows.isEmpty()) {
-            status.append("None");
+            status += "None";
         } else {
-            status.append(String.join(", ", shadows));
+            String result = "";
+            for (String shadow : shadows) {
+                result += shadow + ", ";
+            }
+            status += result.substring(0, result.length() - 2);
         }
 
-        return status.toString();
+        return status;
     }
 
     // Getters and setters
-    public int getHealth() {
-        return health;
+    public int getExp() {
+        return exp;
+    }
+    
+    public int getLevel() {
+        return level;
     }
 
-    public void setHealth(int health) {
-        this.health = Math.max(0, Math.min(health, maxHealth));
+    public void setHealth(int healthValue) {
+        health = Math.max(0, Math.min(healthValue, maxHealth));
+    }
+
+    public int getHealth() {
+        return health;
     }
 
     public int getMaxHealth() {
         return maxHealth;
     }
 
-    public void setMaxHealth(int maxHealth) {
-        this.maxHealth = maxHealth;
+    public void setMaxHealth(int maxHp) {
+        maxHealth = maxHp;
     }
 
     public String getRole() {
         return role;
     }
 
-    public void setRole(String role) {
-        this.role = role;
+    public void setRole(String playerRole) {
+        role = playerRole;
     }
 
     public List<String> getShadows() {
         return shadows;
     }
 
-    public void setShadows(List<String> shadows) {
-        this.shadows = shadows;
+    public void setShadows(List<String> shadowList) {
+        shadows = shadowList;
     }
 }

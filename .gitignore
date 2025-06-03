@@ -4,6 +4,7 @@
 # Only allow specific files
 !run.bat
 !run.sh
+!CHANGELOG.md
 !How to run.md
 
 # Allow source folder and contents
