@@ -1,23 +1,14 @@
 # Ignore everything by default
 *
 
-# Allow specific top-level files
+# Only allow specific files
 !run.bat
 !run.sh
 !How to run.md
 
-# Allow src folder and contents
+# Allow source folder and contents
 !src/
 !src/**
 
-# Ignore compiled Java class files
+# Ignore compiled Java .class files inside src
 src/**/*.class
-
-# Allow bin folder itself
-!bin/
-
-# Ignore everything inside bin
-bin/**
-
-# Allow a placeholder so bin folder stays tracked
-!bin/.gitkeep
