@@ -6,6 +6,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
+
+import game.DungeonProgress;
 import models.PlayerData;
 import models.User;
 
@@ -55,7 +58,29 @@ public class GameDB {
                     player_name VARCHAR(100) NOT NULL,
                     level INT NOT NULL,
                     exp INT NOT NULL,
+                    health INT NOT NULL DEFAULT 100,
+                    max_health INT NOT NULL DEFAULT 100,
+                    role VARCHAR(50),
                     FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
+                )""");
+                
+            s.execute("""
+                CREATE TABLE IF NOT EXISTS player_shadows (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    username VARCHAR(50) NOT NULL,
+                    shadow_name VARCHAR(100) NOT NULL,
+                    FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
+                )""");
+                
+            s.execute("""
+                CREATE TABLE IF NOT EXISTS dungeon_progress (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    username VARCHAR(50) NOT NULL,
+                    dungeon_id INT NOT NULL,
+                    enemies_defeated INT NOT NULL DEFAULT 0,
+                    gate_closed BOOLEAN NOT NULL DEFAULT 0,
+                    FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE,
+                    UNIQUE KEY (username, dungeon_id)
                 )""");
         } catch (SQLException e) {
             System.err.println("DB init error: " + e.getMessage());
@@ -146,15 +171,45 @@ public class GameDB {
             return;
         }
 
-        try (PreparedStatement s = c.prepareStatement(
-                "INSERT INTO game_states (username, player_name, level, exp) VALUES (?, ?, ?, ?) "
-                + "ON DUPLICATE KEY UPDATE player_name=VALUES(player_name), level=VALUES(level), exp=VALUES(exp)")) {
-
-            s.setString(1, user.username);
-            s.setString(2, player.playerName);
-            s.setInt(3, player.level);
-            s.setInt(4, player.exp);
-            s.executeUpdate();
+        try {
+            // First, save the basic player data
+            try (PreparedStatement s = c.prepareStatement(
+                    "INSERT INTO game_states (username, player_name, level, exp, health, max_health, role) "
+                    + "VALUES (?, ?, ?, ?, ?, ?, ?) "
+                    + "ON DUPLICATE KEY UPDATE player_name=VALUES(player_name), level=VALUES(level), "
+                    + "exp=VALUES(exp), health=VALUES(health), max_health=VALUES(max_health), role=VALUES(role)")) {
+                
+                s.setString(1, user.username);
+                s.setString(2, player.playerName);
+                s.setInt(3, player.level);
+                s.setInt(4, player.exp);
+                s.setInt(5, player.getHealth());
+                s.setInt(6, player.getMaxHealth());
+                s.setString(7, player.getRole());
+                s.executeUpdate();
+            }
+            
+            // Then, save shadows (delete old ones first)
+            try (PreparedStatement delete = c.prepareStatement("DELETE FROM player_shadows WHERE username = ?")) {
+                delete.setString(1, user.username);
+                delete.executeUpdate();
+                
+                // Insert new shadows
+                if (player.getShadows() != null && !player.getShadows().isEmpty()) {
+                    try (PreparedStatement insert = c.prepareStatement(
+                            "INSERT INTO player_shadows (username, shadow_name) VALUES (?, ?)")) {
+                        for (String shadow : player.getShadows()) {
+                            insert.setString(1, user.username);
+                            insert.setString(2, shadow);
+                            insert.executeUpdate();
+                        }
+                    }
+                }
+            }
+            
+            // Transaction successful
+            System.out.println("Game state saved successfully!");
+            
         } catch (SQLException e) {
             System.err.println("Save failed: " + e.getMessage());
         } finally {
@@ -175,21 +230,46 @@ public class GameDB {
             return null;
         }
 
-        try (PreparedStatement s = c.prepareStatement(
-                "SELECT player_name, level, exp FROM game_states WHERE username = ?")) {
-
-            s.setString(1, user.username);
-            try (ResultSet r = s.executeQuery()) {
-                if (r.next()) {
-                    PlayerData player = new PlayerData(
-                            r.getString("player_name"),
-                            r.getInt("level"),
-                            r.getInt("exp")
-                    );
-                    return player;
+        try {
+            // Load basic player data
+            PlayerData player = null;
+            
+            try (PreparedStatement s = c.prepareStatement(
+                    "SELECT player_name, level, exp, health, max_health, role FROM game_states WHERE username = ?")) {
+                
+                s.setString(1, user.username);
+                try (ResultSet r = s.executeQuery()) {
+                    if (r.next()) {
+                        player = new PlayerData(
+                                r.getString("player_name"),
+                                r.getInt("level"),
+                                r.getInt("exp")
+                        );
+                        
+                        // Set additional fields
+                        player.setHealth(r.getInt("health"));
+                        player.setMaxHealth(r.getInt("max_health"));
+                        player.setRole(r.getString("role"));
+                    }
                 }
             }
-            return null;
+            
+            if (player != null) {
+                // Load player shadows
+                try (PreparedStatement s = c.prepareStatement(
+                        "SELECT shadow_name FROM player_shadows WHERE username = ?")) {
+                    
+                    s.setString(1, user.username);
+                    try (ResultSet r = s.executeQuery()) {
+                        while (r.next()) {
+                            player.getShadows().add(r.getString("shadow_name"));
+                        }
+                    }
+                }
+            }
+            
+            return player;
+            
         } catch (SQLException e) {
             System.err.println("Load failed: " + e.getMessage());
             return null;
@@ -208,15 +288,19 @@ public class GameDB {
         }
 
         String query = "SELECT u.username, COALESCE(gs.player_name, 'N/A') as player_name, "
-                + "COALESCE(gs.level, 1) as level, COALESCE(gs.exp, 0) as exp "
+                + "COALESCE(gs.level, 1) as level, COALESCE(gs.exp, 0) as exp, "
+                + "COALESCE(gs.health, 100) as health, COALESCE(gs.max_health, 100) as max_health, "
+                + "gs.role, "
+                + "(SELECT COUNT(*) FROM player_shadows ps WHERE ps.username = u.username) as shadow_count "
                 + "FROM users u "
                 + "LEFT JOIN game_states gs ON u.username = gs.username";
 
         try (Statement s = c.createStatement(); ResultSet r = s.executeQuery(query)) {
             StringBuilder header = new StringBuilder();
             header.append("\nALL USERS\n\n");
-            header.append(String.format("%-20s %-20s %-10s %s\n", "USERNAME", "CHARACTER", "LEVEL", "EXP"));
-            header.append("-".repeat(60));
+            header.append(String.format("%-15s %-15s %-8s %-8s %-15s %-10s %s\n", 
+                    "USERNAME", "CHARACTER", "LEVEL", "EXP", "HEALTH", "ROLE", "SHADOWS"));
+            header.append("-".repeat(80));
 
             System.out.println(header.toString());
 
@@ -225,9 +309,20 @@ public class GameDB {
                 String charName = r.getString("player_name");
                 int level = r.getInt("level");
                 int exp = r.getInt("exp");
-                System.out.printf("%-20s %-20s %-10d %d\n", username, charName, level, exp);
+                int health = r.getInt("health");
+                int maxHealth = r.getInt("max_health");
+                String role = r.getString("role");
+                int shadowCount = r.getInt("shadow_count");
+                
+                System.out.printf("%-15s %-15s %-8d %-8d %-15s %-10s %d\n", 
+                        username, 
+                        charName, 
+                        level, 
+                        exp, 
+                        health + "/" + maxHealth,
+                        role != null ? role : "N/A",
+                        shadowCount);
             }
-            r.close();
         } catch (SQLException e) {
             System.err.println("Error listing users: " + e.getMessage());
         } finally {
@@ -236,6 +331,70 @@ public class GameDB {
             } catch (SQLException e) {
             }
         }
+    }
+    
+    // Save dungeon progress for a user
+    public static void saveDungeonProgress(User user, int dungeonId, int enemiesDefeated, boolean gateClosed) {
+        if (user == null) return;
+        
+        Connection c = getConnection();
+        if (c == null) return;
+        
+        try (PreparedStatement s = c.prepareStatement(
+                "INSERT INTO dungeon_progress (username, dungeon_id, enemies_defeated, gate_closed) "
+                + "VALUES (?, ?, ?, ?) "
+                + "ON DUPLICATE KEY UPDATE enemies_defeated=VALUES(enemies_defeated), gate_closed=VALUES(gate_closed)")) {
+            
+            s.setString(1, user.username);
+            s.setInt(2, dungeonId);
+            s.setInt(3, enemiesDefeated);
+            s.setBoolean(4, gateClosed);
+            s.executeUpdate();
+            
+        } catch (SQLException e) {
+            System.err.println("Error saving dungeon progress: " + e.getMessage());
+        } finally {
+            try {
+                c.close();
+            } catch (SQLException e) {
+            }
+        }
+    }
+    
+    // Load all dungeon progress for a user
+    public static HashMap<Integer, DungeonProgress> loadDungeonProgress(User user) {
+        if (user == null) return new HashMap<>();
+        
+        Connection c = getConnection();
+        if (c == null) return new HashMap<>();
+        
+        HashMap<Integer, DungeonProgress> progress = new HashMap<>();
+        
+        try (PreparedStatement s = c.prepareStatement(
+                "SELECT dungeon_id, enemies_defeated, gate_closed FROM dungeon_progress WHERE username = ?")) {
+            
+            s.setString(1, user.username);
+            
+            try (ResultSet r = s.executeQuery()) {
+                while (r.next()) {
+                    int dungeonId = r.getInt("dungeon_id");
+                    DungeonProgress dp = new DungeonProgress();
+                    dp.enemiesDefeated = r.getInt("enemies_defeated");
+                    dp.gateClosed = r.getBoolean("gate_closed");
+                    progress.put(dungeonId, dp);
+                }
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error loading dungeon progress: " + e.getMessage());
+        } finally {
+            try {
+                c.close();
+            } catch (SQLException e) {
+            }
+        }
+        
+        return progress;
     }
 
     public static void resetDatabase() {

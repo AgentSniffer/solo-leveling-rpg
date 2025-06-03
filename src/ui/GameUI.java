@@ -1,6 +1,7 @@
 package ui;
 
 import db.GameDB;
+import game.GameManager;
 import java.io.IOException;
 import java.util.Scanner;
 import models.PlayerData;
@@ -147,13 +148,46 @@ public class GameUI {
 
         clearScreen();
         printBox("NEW GAME");
+        
         System.out.print("Character name: ");
         String name = scanner.nextLine().trim();
         if (name.isEmpty()) {
             name = "Player";
         }
-
+        
+        // Create player with default values
         player = new PlayerData(name);
+        
+        // Role selection
+        clearScreen();
+        printBox("SELECT ROLE\n1. Hunter - Increased damage\n2. Tank - More HP\n3. Healer - HP regeneration");
+        System.out.print("> ");
+        String roleChoice = scanner.nextLine().trim();
+        
+        switch (roleChoice) {
+            case "1" -> {
+                player.setRole("Hunter");
+                System.out.println("\nYou selected Hunter! Your attacks deal more damage.");
+            }
+            case "2" -> {
+                player.setRole("Tank");
+                player.setMaxHealth(150);  // Tanks get more health
+                player.setHealth(150);
+                System.out.println("\nYou selected Tank! You have more health.");
+            }
+            case "3" -> {
+                player.setRole("Healer");
+                System.out.println("\nYou selected Healer! You regenerate health after battles.");
+            }
+            default -> {
+                player.setRole("Adventurer");  // Default role
+                System.out.println("\nYou selected Adventurer! Jack of all trades.");
+            }
+        }
+        
+        waitForInput();
+        
+        // Save the initial player state
         GameDB.saveGameState(user, player);
         playGame();
     }
@@ -175,23 +209,37 @@ public class GameUI {
         }
     }
 
+    // Game manager instance
+    static GameManager gameManager;
+    
     static void playGame() {
+        // Initialize game manager if needed
+        if (gameManager == null) {
+            gameManager = new GameManager(player, user, scanner);
+        }
+        
         while (true) {
             clearScreen();
-            System.out.println(player.getStatus());
-            printBox("ACTIONS\n1. Hunt Monsters (Gain EXP)\n2. Save & Return to Menu");
+            System.out.println(player.getDetailedStatus());
+            printBox("ACTIONS\n1. Enter Dungeon\n2. View Character\n3. Save & Return to Menu");
             System.out.print("> ");
 
             String input = scanner.nextLine();
             switch (input.trim()) {
                 case "1" -> {
-                    int expGained = 10 + (int) (Math.random() * 20);
-                    System.out.println("\nYou gained " + expGained + " EXP!");
-                    player.gainExp(expGained);
+                    clearScreen();
+                    // Let game manager handle dungeon selection and combat
+                    gameManager.selectDungeon();
                     waitForInput();
                 }
                 case "2" -> {
-                    GameDB.saveGameState(user, player);
+                    clearScreen();
+                    printBox(player.getDetailedStatus());
+                    waitForInput();
+                }
+                case "3" -> {
+                    // Save game state and player progress
+                    gameManager.saveProgress();
                     return;
                 }
                 default -> {
