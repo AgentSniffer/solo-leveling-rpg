@@ -1,15 +1,15 @@
-# Ignore everything by default
-*
+# # Ignore everything by default
+# *
 
-# Only allow specific files
-!run.bat
-!run.sh
-!CHANGELOG.md
-!How to run.md
+# # Only allow specific files
+# !run.bat
+# !run.sh
+# !CHANGELOG.md
+# !How to run.md
 
-# Allow source folder and contents
-!src/
-!src/**
+# # Allow source folder and contents
+# !src/
+# !src/**
 
-# Ignore compiled Java .class files inside src
-src/**/*.class
+# # Ignore compiled Java .class files inside src
+# src/**/*.class
