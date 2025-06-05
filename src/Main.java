@@ -1,11 +1,10 @@
 
 import cli.LoginCli;
-import utils.DBUtil;
-
+import db.SchemaDB;
 public class Main {
 
     public static void main(String[] args) {
-        DBUtil.initialize();
+        SchemaDB.initializeSchema();
         LoginCli.display();
     }
 }

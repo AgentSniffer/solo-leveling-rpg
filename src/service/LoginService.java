@@ -1,6 +1,7 @@
 package service;
 
 import java.util.HashMap;
+import java.util.UUID;
 
 import db.EmailDB;
 import utils.DBUtil;
@@ -16,13 +17,16 @@ public class LoginService extends DBUtil {
             return false;
         }
 
-        String hashedPassword = EmailDB.getUserHash(email);
-        if (hashedPassword == null) {
-            System.out.println("\nError: User does not exist.");
-            return false; // User does not exist
+        String salt = EmailDB.getSaltForUser(email); // new method
+        if (salt == null) {
+            System.out.println("\nError: User not found.");
+            return false;
         }
 
-        return HashUtil.hashPassword(password).equals(hashedPassword);
+        String correctHash = EmailDB.getUserHash(email);
+        String attemptedHash = HashUtil.hashPassword(password, salt);
+
+        return attemptedHash.equals(correctHash);
     }
 
     public boolean register(String email, String password) {
@@ -31,18 +35,21 @@ public class LoginService extends DBUtil {
             return false;
         }
 
-        if (EmailDB.userExists(email)) {
+        if (EmailDB.emailExists(email)) {
             System.out.println("\nError: Email already exists.");
-            return false; // User already exists
+            return false;
         }
 
-        String hashedPassword = HashUtil.hashPassword(password);
-        if (EmailDB.createUser(email, hashedPassword)) {
-            users.put(email, new UserModel(email, hashedPassword));
+        String salt = UUID.randomUUID().toString(); // random salt
+        String hashedPassword = HashUtil.hashPassword(password, salt);
+
+        if (EmailDB.createEmail(email, hashedPassword, salt)) {
+            users.put(email, new UserModel(email, hashedPassword, salt));
             return true;
         }
+
         System.out.println("\nError: Failed to create user in the database.");
-        return false; // Failed to create user in the database
+        return false;
     }
 
     private boolean isInputInvalid(String email, String password) {
@@ -59,10 +66,7 @@ public class LoginService extends DBUtil {
         }
 
         String[] parts = email.split("@", 2);
-        if (parts.length != 2 || !isDomainValid(parts[1])) {
-            return false;
-        }
-        return true;
+        return !(parts.length != 2 || !isDomainValid(parts[1]));
     }
 
     private static boolean isDomainValid(String domain) {
@@ -77,5 +81,10 @@ public class LoginService extends DBUtil {
             }
         }
         return true;
+    }
+
+    public static void logout() {
+        // Clear any session data or user state here
+        System.out.println("\nYou have been successfully logged out.");
     }
 }

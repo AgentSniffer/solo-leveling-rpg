@@ -19,7 +19,7 @@ public class DBUtil {
 
     public static void loadDatabaseConfig() {
         Properties properties = new Properties();
-        try (FileInputStream input = new FileInputStream("db/db.properties")) {
+        try (FileInputStream input = new FileInputStream("db.properties")) {
             properties.load(input);
             DB_URL = properties.getProperty("db.url");
             DB_USER = properties.getProperty("db.user");
@@ -30,23 +30,13 @@ public class DBUtil {
         }
     }
 
-    public static void initialize() {
-        loadDatabaseConfig();
+    public static void connect() {
         try {
             conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-
-            executeMySQL("CREATE DATABASE IF NOT EXISTS sololevelingrpg");
-            executeMySQL("USE sololevelingrpg");
-            executeMySQL("CREATE TABLE IF NOT EXISTS users ("
-                    + "id INT AUTO_INCREMENT PRIMARY KEY, "
-                    + "email VARCHAR(255) UNIQUE NOT NULL, "
-                    + "hashed_password VARCHAR(255) NOT NULL"
-                    + ")");
-
         } catch (SQLException e) {
-            System.err.println("SQL Error executing query: " + e.getMessage());
+            System.err.println("SQL Error connecting to database: " + e.getMessage());
         } catch (Exception e) {
-            System.err.println("Error executing query: " + e.getMessage());
+            System.err.println("Error connecting to database: " + e.getMessage());
         }
     }
 

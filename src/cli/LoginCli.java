@@ -6,7 +6,7 @@ import utils.CliUtil;
 
 public class LoginCli extends CliUtil {
 
-    static LoginService authService = new LoginService();
+    static LoginService loginService = new LoginService();
 
     public static void display() {
         clearScreen();
@@ -34,26 +34,22 @@ public class LoginCli extends CliUtil {
         }
     }
 
-    public static void handleLogin() {
+    private static void handleLogin() {
         clearScreen();
         printBox("Login (type 'back' to go back)");
         String email = promptForInput("Enter email: ");
-        
         if (email.equals("back")) {
-            display();
-            return;
-        }
-        
-        String password = promptForInput("Enter password: ");
-        
-        if (password.equals("back")) {
-            display();
             return;
         }
 
-        if (authService.login(email, password)) {
+        String password = promptForInput("Enter password: ");
+        if (password.equals("back")) {
+            return;
+        }
+
+        if (loginService.login(email, password)) {
             System.out.println("\nLogin successful!");
-            // Display game menu here
+            GameCli.display();
         } else {
             System.out.println("\nLogin failed. Invalid email or password.");
         }
@@ -62,28 +58,26 @@ public class LoginCli extends CliUtil {
         display();
     }
 
-    public static void handleRegister() {
+    private static void handleRegister() {
         clearScreen();
         printBox("Register (type 'back' to go back)");
 
         // Email
         String email = promptForInput("Enter email: ");
-        
         if (email.equals("back")) {
-            display();
             return;
         }
-        
-                // Check if user already exists
-        if (EmailDB.userExists(email)) {
-            System.out.println("\nError: Email already exists. Please try logging in.");
+
+        // Check if user already exists and if email is valid
+        if (!LoginService.isValidEmail(email)) {
+            System.out.println("\nError: Please enter a valid Email (e.g., user@example.com)");
             pause();
             display();
             return;
         }
-        
-        if (!LoginService.isValidEmail(email)) {
-            System.out.println("\nError: Please enter a valid   Email (e.g., user@example.com)");
+
+        if (EmailDB.emailExists(email)) {
+            System.out.println("\nError: Email already exists. Please try logging in.");
             pause();
             display();
             return;
@@ -91,12 +85,10 @@ public class LoginCli extends CliUtil {
 
         // Password
         String password = promptForInput("Enter password: ");
-        
         if (password.equals("back")) {
-            display();
             return;
         }
-        
+
         if (password.length() < 8) {
             System.out.println("\nError: Password must be at least 8 characters");
             pause();
@@ -104,10 +96,10 @@ public class LoginCli extends CliUtil {
             return;
         }
 
-        if (authService.register(email, password)) {
+        if (loginService.register(email, password)) {
             System.out.println("\n✅ Registration successful! You can now log in.");
         } else {
-            System.out.println("\n❌ Error: Email already in use");
+            System.out.println("\n❌ Registration failed. Please try again.");
         }
 
         pause();
