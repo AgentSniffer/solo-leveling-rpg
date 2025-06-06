@@ -3,11 +3,15 @@ package db;
 import utils.DBUtil;
 
 public class SchemaDB extends DBUtil {
-
-    public static void initializeSchema() {
+    
+    public static void setup() {
         loadDatabaseConfig();
         connect();
-        
+        initializeSchema();
+    }
+
+    public static void initializeSchema() {
+
         // First create the database if it doesn't exist
         executeMySQL("CREATE DATABASE IF NOT EXISTS Solo_Leveling_RPG");
         executeMySQL("USE Solo_Leveling_RPG");

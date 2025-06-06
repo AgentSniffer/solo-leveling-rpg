@@ -1,16 +1,20 @@
 package model;
 
+import java.util.Scanner;
+
 public class PlayerModel extends CharacterModel {
 
     public String playerClass;
     public String race;
     public InventoryModel inventory = new InventoryModel();
+    public int skillCooldown = 0;
 
     public PlayerModel(String newName, String newPlayerClass, String newRace) {
         name = newName;
         playerClass = newPlayerClass;
         race = newRace;
         initializeStats();
+        gold = 100;
     }
 
     private void initializeStats() {
@@ -75,5 +79,100 @@ public class PlayerModel extends CharacterModel {
                 mp += 50;
             }
         }
+    }
+
+    public void displayStats() {
+        System.out.println("\n--- Character Stats ---");
+        System.out.println("Name: " + name);
+        System.out.println("Race: " + race);
+        System.out.println("Class: " + playerClass);
+        System.out.println("Level: " + level);
+        System.out.println("EXP: " + exp + "/" + nextLevelExp());
+        System.out.println("Gold: " + gold);
+        System.out.println("\nAttributes:");
+        System.out.println("Strength: " + strength);
+        System.out.println("Endurance: " + endurance);
+        System.out.println("Agility: " + agility);
+        System.out.println("Intelligence: " + intelligence);
+        System.out.println("Luck: " + luck);
+        System.out.println("\nCombat Stats:");
+        System.out.println("HP: " + hp + "/" + maxHp);
+        System.out.println("MP: " + mp + "/" + maxMp);
+        System.out.println("Damage: " + calculateDamage() + "-" + (calculateDamage() + 4));
+    }
+
+    public void viewInventory(Scanner sc) {
+        System.out.println("\n--- Inventory ---");
+        System.out.println("Gold: " + gold);
+
+        if (inventory.items.isEmpty()) {
+            System.out.println("Your inventory is empty!");
+            return;
+        }
+
+        int index = 1;
+        for (ItemModel item : inventory.items.values()) {
+            System.out.println(index++ + ". " + item.name + " - " + item.description);
+        }
+    }
+
+    public boolean useSkill(EnemyModel enemy) {
+        if (skillCooldown > 0) {
+            System.out.println("Skill is on cooldown! (" + skillCooldown + " turns remaining)");
+            return false;
+        }
+
+        int mpCost = 30;
+        if (mp < mpCost) {
+            System.out.println("Not enough MP!");
+            return false;
+        }
+
+        mp -= mpCost;
+        int damage = calculateDamage() * 2;
+        enemy.hp -= damage;
+        skillCooldown = 3;
+
+        System.out.println("You use a powerful skill on the enemy for " + damage + " damage!");
+        return true;
+    }
+
+    public void useItem(int index) {
+        if (index < 0 || index >= inventory.items.size()) {
+            System.out.println("Invalid item choice!");
+            return;
+        }
+
+        ItemModel item = (ItemModel) inventory.items.values().toArray()[index];
+        if (item.type.equals("consumable")) {
+            if (item.name.contains("Health")) {
+                hp = Math.min(maxHp, hp + item.value);
+                System.out.println("Restored " + item.value + " HP!");
+            } else if (item.name.contains("Mana")) {
+                mp = Math.min(maxMp, mp + item.value);
+                System.out.println("Restored " + item.value + " MP!");
+            }
+            inventory.removeItem(item.name);
+        } else {
+            System.out.println("You use the " + item.name);
+        }
+    }
+
+    public void levelUp() {
+        level++;
+        exp = 0;
+
+        // Increase stats
+        strength += 3;
+        endurance += 3;
+        agility += 2;
+        intelligence += 2;
+        luck += 1;
+
+        // Increase HP/MP
+        maxHp += 50;
+        maxMp += 30;
+        hp = maxHp;
+        mp = maxMp;
     }
 }

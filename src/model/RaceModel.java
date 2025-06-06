@@ -19,13 +19,13 @@ public class RaceModel {
     }
 
     public String getStatsAsString() {
-        return "Stats:\n"      +
-               "Strength: "    + baseStats[0] + "\n" +
-               "Endurance: "   + baseStats[1] + "\n" +
-               "Agility: "     + baseStats[2] + "\n" +
-               "Intelligence:" + baseStats[3] + "\n" +
-               "Luck: "        + baseStats[4] + "\n\n" +
-               "Effects:\n- "  + effects + "\n" +
-               "- HP: +"       + hpMod + ", MP: +" + mpMod;
+        return "Stats:\n"
+                + "Strength: " + baseStats[0] + "\n"
+                + "Endurance: " + baseStats[1] + "\n"
+                + "Agility: " + baseStats[2] + "\n"
+                + "Intelligence:" + baseStats[3] + "\n"
+                + "Luck: " + baseStats[4] + "\n\n"
+                + "Effects:\n- " + effects + "\n"
+                + "- HP: +" + hpMod + ", MP: +" + mpMod;
     }
 }

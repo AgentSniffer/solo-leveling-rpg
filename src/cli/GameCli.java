@@ -1,56 +1,58 @@
 package cli;
 
 import service.GameService;
-import service.LoginService;
 import utils.CliUtil;
 
 public class GameCli extends CliUtil {
+
     static GameService SoloLevelingRPG = new GameService();
 
     public static void display() {
-        clearScreen();
-        
-        printBox("1. Load Game\n2. New Game\n3. Logout\n4. Back");
-        String input = promptForInput("> ");
-        resetColor();
+        while (true) {
+            clearScreen();
 
-        switch (input) {
-            case "1" -> {
-                System.out.println("Load Game");
+            printBox("1. Load Game\n2. New Game\n3. Back to Menu");
+            String input = promptForInput("> ");
+            if (input == null) {
+                return;
             }
-            case "2" -> {
-                SoloLevelingRPG.startGame();
-            }
-            case "3" -> {
-                handleLogout();
-            }
-            case "4" -> {
-                LoginCli.display();
-            }
-            default -> {
-                System.out.println(RED + "\nInvalid input" + RESET);
-                pause();
-                display();
+            resetColor();
+
+            switch (input) {
+                case "1" -> {
+                    SoloLevelingRPG.loadGame("username");
+                }
+                case "2" -> {
+                    SoloLevelingRPG.startGame();
+                }
+                case "3" -> {
+                    System.out.println(GREEN + "\nReturning to main menu..." + RESET);
+                    pause();
+                    return;
+                }
+                default -> {
+                    System.out.println(RED + "\n❌ Invalid input. Try again." + RESET);
+                    pause();
+                    clearScreen();
+                }
             }
         }
-
-    }
-
-    private static void handleLogout() {
-        LoginService.logout();
-        pause();
-        LoginCli.display();
     }
 
     public static String promptForInput(String message) {
-        System.out.print(message + DEFAULT_COLOR);
-        String input = sc.nextLine().trim();
-        resetColor();
-        if (input.isEmpty()) {
-            System.out.println("\nError: Input cannot be empty");
+        while (true) {
+            System.out.print(message + DEFAULT_COLOR);
+
+            String input = sc.nextLine();
+            resetColor();
+
+            if (input != null && !input.trim().isEmpty()) {
+                return input.trim();
+            }
+
+            System.out.println(RED + "\n❌ Error: Input cannot be empty." + RESET);
             pause();
-            display();
         }
-        return input;
     }
+
 }

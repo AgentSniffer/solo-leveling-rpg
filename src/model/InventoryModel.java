@@ -3,13 +3,14 @@ package model;
 import java.util.HashMap;
 
 public class InventoryModel {
-    public HashMap<String, ItemModel> inventory = new HashMap<String, ItemModel>();
-    
+
+    public HashMap<String, ItemModel> items = new HashMap<String, ItemModel>();
+
     public void addItem(ItemModel item) {
-      inventory.put(item.name, item);
+        items.put(item.name, item);
     }
-    
-    public void removeItem(String itemName) {
-      inventory.remove(itemName);
+
+    public void removeItem(String name) {
+        items.remove(name);
     }
 }

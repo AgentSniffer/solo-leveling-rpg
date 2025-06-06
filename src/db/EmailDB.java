@@ -30,7 +30,7 @@ public class EmailDB extends DBUtil {
             return false;
         }
     }
-    
+
     public static boolean emailExists(String email) {
         try {
             String query = "SELECT * FROM users WHERE email = '" + email + "'";
@@ -72,7 +72,7 @@ public class EmailDB extends DBUtil {
             return null;
         }
     }
-    
+
     public static String getSaltForUser(String email) {
         try {
             String query = "SELECT salt FROM users WHERE email = '" + email + "'";

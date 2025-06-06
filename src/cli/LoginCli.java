@@ -9,112 +9,149 @@ public class LoginCli extends CliUtil {
     static LoginService loginService = new LoginService();
 
     public static void display() {
-        clearScreen();
-        displayMenu("Arise, Hunter.\n1. 🔑 Login\n2. 📝 Register\n3. 🎨 Settings\n4. 🚪 Exit");
+        if (loginService == null) {
+            System.err.println("Login service not available. Please check system config.");
+            return;
+        }
 
-        String input = sc.nextLine().trim();
-        resetColor();
-
-        switch (input) {
-            case "1" ->
-                handleLogin();
-            case "2" ->
-                handleRegister();
-            case "3" ->
-                settings();
-            case "4" -> {
+        while (true) {
+            try {
                 clearScreen();
-                exit();
-            }
-            default -> {
-                System.out.println(RED + "\nInvalid input" + RESET);
-                pause();
-                display();
+                printBox("Arise, Hunter.\n1. 🔑 Login\n2. 📝 Register\n3. 🎨 Settings\n4. 🚪 Exit");
+
+                String input = promptForInput("> ");
+                resetColor();
+
+                switch (input) {
+                    case "1" -> {
+                        handleLogin();
+                        // After returning from game, the loop will show the main menu again
+                    }
+                    case "2" ->
+                        handleRegister();
+                    case "3" ->
+                        settings();
+                    case "4" -> {
+                        clearScreen();
+                        exit();
+                        return;
+                    }
+                    default -> {
+                        System.out.println(RED + "\n❌ Invalid input." + RESET);
+                        pause();
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Unexpected error in display(): " + e.getMessage());
+                return;
             }
         }
     }
 
-    private static void handleLogin() {
-        clearScreen();
-        printBox("Login (type 'back' to go back)");
-        String email = promptForInput("Enter email: ");
-        if (email.equals("back")) {
-            return;
-        }
+    private static boolean handleLogin() {
+        while (true) {
+            try {
+                clearScreen();
+                printBox("Login (type 'back' to go back)");
 
-        String password = promptForInput("Enter password: ");
-        if (password.equals("back")) {
-            return;
-        }
+                String email = promptForInput("Enter email: ");
+                if (email.equalsIgnoreCase("back")) {
+                    return false;
+                }
 
-        if (loginService.login(email, password)) {
-            System.out.println("\nLogin successful!");
-            GameCli.display();
-        } else {
-            System.out.println("\nLogin failed. Invalid email or password.");
-        }
+                String password = promptForInput("Enter password: ");
+                if (password.equalsIgnoreCase("back")) {
+                    return false;
+                }
 
-        pause();
-        display();
+                if (loginService.login(email, password)) {
+                    System.out.println(GREEN + "\n✅ Login successful!" + RESET);
+                    pause();
+                    GameCli.display();
+                    return true;
+                } else {
+                    System.out.println(RED + "\n❌ Login failed. Invalid email or password." + RESET);
+                    pause();
+                }
+            } catch (Exception e) {
+                System.err.println("Error during login: " + e.getMessage());
+                System.out.println(RED + "\n❌ An error occurred during login. Please try again." + RESET);
+                pause();
+                return false;
+            }
+        }
     }
 
     private static void handleRegister() {
-        clearScreen();
-        printBox("Register (type 'back' to go back)");
+        while (true) {
+            try {
+                clearScreen();
+                printBox("Register (type 'back' to go back)");
 
-        // Email
-        String email = promptForInput("Enter email: ");
-        if (email.equals("back")) {
-            return;
+                String email = promptForInput("Enter email: ");
+                if (email.equalsIgnoreCase("back")) {
+                    return;
+                }
+
+                if (!LoginService.isValidEmail(email)) {
+                    System.out.println(RED + "\n❌ Invalid Email (e.g., user@example.com)" + RESET);
+                    pause();
+                    continue;
+                }
+
+                if (EmailDB.emailExists(email)) {
+                    System.out.println(RED + "\n❌ Email already exists. Try logging in." + RESET);
+                    pause();
+                    return;
+                }
+
+                String password = promptForInput("Enter password: ");
+                if (password.equalsIgnoreCase("back")) {
+                    return;
+                }
+
+                if (password.length() < 8) {
+                    System.out.println(RED + "\n❌ Password must be at least 8 characters" + RESET);
+                    pause();
+                    continue;
+                }
+
+                if (loginService.register(email, password)) {
+                    System.out.println(GREEN + "\n✅ Registration successful! You can now log in." + RESET);
+                } else {
+                    System.out.println(RED + "\n❌ Registration failed. Please try again." + RESET);
+                }
+
+                pause();
+                return;
+
+            } catch (Exception e) {
+                System.err.println("Error during registration: " + e.getMessage());
+                System.out.println(RED + "\n❌ An error occurred during registration. Please try again." + RESET);
+                pause();
+                return;
+            }
         }
-
-        // Check if user already exists and if email is valid
-        if (!LoginService.isValidEmail(email)) {
-            System.out.println("\nError: Please enter a valid Email (e.g., user@example.com)");
-            pause();
-            display();
-            return;
-        }
-
-        if (EmailDB.emailExists(email)) {
-            System.out.println("\nError: Email already exists. Please try logging in.");
-            pause();
-            display();
-            return;
-        }
-
-        // Password
-        String password = promptForInput("Enter password: ");
-        if (password.equals("back")) {
-            return;
-        }
-
-        if (password.length() < 8) {
-            System.out.println("\nError: Password must be at least 8 characters");
-            pause();
-            display();
-            return;
-        }
-
-        if (loginService.register(email, password)) {
-            System.out.println("\n✅ Registration successful! You can now log in.");
-        } else {
-            System.out.println("\n❌ Registration failed. Please try again.");
-        }
-
-        pause();
-        display();
     }
 
     private static String promptForInput(String message) {
-        System.out.print(message + DEFAULT_COLOR);
-        String input = sc.nextLine().trim();
-        resetColor();
-        if (input.isEmpty()) {
-            System.out.println("\nError: Input cannot be empty");
-            pause();
-            display();
+        while (true) {
+            try {
+                System.out.print(message + DEFAULT_COLOR);
+                String input = sc.nextLine().trim();
+                resetColor();
+
+                if (!input.isEmpty()) {
+                    return input;
+                }
+
+                System.out.println(RED + "\n❌ Error: Input cannot be empty" + RESET);
+                pause();
+            } catch (Exception e) {
+                System.err.println("Error reading input: " + e.getMessage());
+                resetColor();
+                return "back"; // fallback to exit path
+            }
         }
-        return input;
     }
 }

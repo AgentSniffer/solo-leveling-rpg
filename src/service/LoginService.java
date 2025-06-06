@@ -83,8 +83,4 @@ public class LoginService extends DBUtil {
         return true;
     }
 
-    public static void logout() {
-        // Clear any session data or user state here
-        System.out.println("\nYou have been successfully logged out.");
-    }
 }

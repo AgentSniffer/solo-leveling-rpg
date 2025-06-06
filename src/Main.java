@@ -4,7 +4,7 @@ import db.SchemaDB;
 public class Main {
 
     public static void main(String[] args) {
-        SchemaDB.initializeSchema();
+        SchemaDB.setup();
         LoginCli.display();
     }
 }
